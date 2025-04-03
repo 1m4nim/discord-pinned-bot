@@ -1,7 +1,21 @@
 {
+  "name": "discord-pinned-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot that lists pinned messages every morning",
+  "main": "dist/bot.js",
+  "scripts": {
+    "start": "node dist/bot.js",
+    "dev": "ts-node src/bot.ts",
+    "build": "tsc"
+  },
   "dependencies": {
-    "discord.js": "^14.18.0",
+    "discord.js": "^14.11.0",
     "dotenv": "^16.4.7",
     "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node-cron": "^3.0.11",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3"
   }
 }
