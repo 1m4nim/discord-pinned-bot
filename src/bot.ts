@@ -18,9 +18,11 @@ const TOKEN = process.env.DISCORD_BOT_TOKEN; // Discord Bot のトークン
 const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(',').map(id => id.trim()) || []; // 複数チャンネルIDを配列に変換
 
 client.once('ready', async () => {
-  console.log(`Logged in as ${client.user?.tag}!`); // Bot のログイン確認
+  console.log(`Logged in as ${client.user?.tag}!`); 
+  setTimeout(()=>{
   client.user?.setActivity("📌 ピン留めを監視中", { type: ActivityType.Watching }); // ステータス設定
-
+  },1000);
+});
   // 毎日実行
   const schedules = ['* * * * *'];
   schedules.forEach((schedule) => {
@@ -54,7 +56,7 @@ client.once('ready', async () => {
       }
     });
   });
-});
+
 
 client.on("messageCreate", (message) => {
   if (message.content === "!ping") {
