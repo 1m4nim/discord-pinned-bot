@@ -21,6 +21,16 @@ const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(',').map(id => 
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user?.tag}!`); // Bot のログイン確認
 
+    client.user?.setPreesence({
+        status:"online",
+        activities:[
+            {
+                name:"ピン留めメッセージを監視中",
+                type:discord_js_1.ActivityType.Watching,
+            },
+        ],
+    });
+
     // 毎日実行
     const schedules = ['* * * * *'];
     schedules.forEach((schedule) => {
@@ -62,6 +72,11 @@ client.on("messageCreate", (message) => {
     if (message.content === "!ping") {
         message.reply("🏓 Pong!");
     }
+});
+
+client.on("disconnect", () => {
+    console.log("Bot が切断されました。再接続を試みます...");
+    client.login(TOKEN);
 });
 
 client.login(TOKEN); // Bot にログイン
