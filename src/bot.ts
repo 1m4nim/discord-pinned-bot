@@ -21,12 +21,13 @@ const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(',').map(id => 
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user?.tag}!`); // Bot のログイン確認
 
-    client.user?.setPreesence({
-        status:"online",
-        activities:[
+    // ✅ ステータスをオンライン（緑）に設定
+    client.user?.setPresence({
+        status: "online", // "online" = 緑（常にオンライン）
+        activities: [
             {
-                name:"ピン留めメッセージを監視中",
-                type:discord_js_1.ActivityType.Watching,
+                name: "ピン留めメッセージを監視中",
+                type: discord_js_1.ActivityType.Watching, // 「〇〇を視聴中」と表示
             },
         ],
     });
