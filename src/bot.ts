@@ -11,6 +11,7 @@ const client = new discord_js_1.Client({
         discord_js_1.GatewayIntentBits.Guilds, // サーバー（ギルド）の情報を取得
         discord_js_1.GatewayIntentBits.GuildMessages, // メッセージの情報を取得
         discord_js_1.GatewayIntentBits.MessageContent, // メッセージの内容を取得
+        discord_js_1.GatewayIntentBits.GuildPresences, 
     ],
 });
 
