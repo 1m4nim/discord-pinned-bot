@@ -1,5 +1,5 @@
-import { Client, GatewayIntentBits, TextChannel } from 'discord.js';
-import *  as cron from 'node-cron';
+import { Client, GatewayIntentBits, TextChannel, ActivityType } from 'discord.js';
+import * as cron from 'node-cron';
 import * as dotenv from 'dotenv';
 
 dotenv.config(); // .env ファイルを読み込む
@@ -19,9 +19,10 @@ const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(',').map(id => 
 
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user?.tag}!`); // Bot のログイン確認
+  client.user?.setActivity("📌 ピン留めを監視中", { type: ActivityType.Watching }); // ステータス設定
 
   // 毎日実行
-  const schedules = ['0 8 * * *', '0 21 * * *'];
+  const schedules = ['* * * * *'];
   schedules.forEach((schedule) => {
     cron.schedule(schedule, async () => {
       let reportMessage = '**📌 今日のピン留めメッセージ一覧**\n'; // 送信するメッセージの初期化
@@ -53,6 +54,12 @@ client.once('ready', async () => {
       }
     });
   });
+});
+
+client.on("messageCreate", (message) => {
+  if (message.content === "!ping") {
+    message.reply("🏓 Pong!");
+  }
 });
 
 client.login(TOKEN); // Bot にログイン
