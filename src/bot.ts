@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, TextChannel } from 'discord.js';
-import cron from 'node-cron';
-import dotenv from 'dotenv';
+import *  as cron from 'node-cron';
+import * as dotenv from 'dotenv';
 
 dotenv.config(); // .env ファイルを読み込む
 
@@ -21,7 +21,7 @@ client.once('ready', async () => {
   console.log(`Logged in as ${client.user?.tag}!`); // Bot のログイン確認
 
   // 毎日実行
-  const schedules = ['0 8 * * *', '0 13 * * *'];
+  const schedules = ['0 8 * * *', '0 21 * * *'];
   schedules.forEach((schedule) => {
     cron.schedule(schedule, async () => {
       let reportMessage = '**📌 今日のピン留めメッセージ一覧**\n'; // 送信するメッセージの初期化

@@ -5,7 +5,7 @@
   "main": "dist/bot.js",
   "scripts": {
     "start": "node dist/bot.js",
-    "dev": "ts-node src/bot.ts",
+    "dev": "ts-node src/bot.js",
     "build": "tsc"
   },
   "dependencies": {
