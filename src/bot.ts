@@ -1,16 +1,17 @@
-import { Client, GatewayIntentBits, TextChannel, ActivityType } from 'discord.js';
-import * as cron from 'node-cron';
-import * as dotenv from 'dotenv';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = require("discord.js");
+const cron = require("node-cron");
+const dotenv = require("dotenv");
 dotenv.config(); // .env ファイルを読み込む
 
 // Discord クライアントを作成
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds, // サーバー（ギルド）の情報を取得
-    GatewayIntentBits.GuildMessages, // メッセージの情報を取得
-    GatewayIntentBits.MessageContent, // メッセージの内容を取得
-  ],
+const client = new discord_js_1.Client({
+    intents: [
+        discord_js_1.GatewayIntentBits.Guilds, // サーバー（ギルド）の情報を取得
+        discord_js_1.GatewayIntentBits.GuildMessages, // メッセージの情報を取得
+        discord_js_1.GatewayIntentBits.MessageContent, // メッセージの内容を取得
+    ],
 });
 
 // 環境変数からトークンと通知先チャンネルのIDを取得
@@ -18,50 +19,49 @@ const TOKEN = process.env.DISCORD_BOT_TOKEN; // Discord Bot のトークン
 const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(',').map(id => id.trim()) || []; // 複数チャンネルIDを配列に変換
 
 client.once('ready', async () => {
-  console.log(`Logged in as ${client.user?.tag}!`); 
-  setTimeout(()=>{
-  client.user?.setActivity("📌 ピン留めを監視中", { type: ActivityType.Watching }); // ステータス設定
-  },1000);
-});
-  // 毎日実行
-  const schedules = ['* * * * *'];
-  schedules.forEach((schedule) => {
-    cron.schedule(schedule, async () => {
-      let reportMessage = '**📌 今日のピン留めメッセージ一覧**\n'; // 送信するメッセージの初期化
+    console.log(`Logged in as ${client.user?.tag}!`); // Bot のログイン確認
 
-      // すべてのテキストチャンネルをチェック
-      for (const [id, channel] of client.channels.cache) {
-        if (channel instanceof TextChannel) { // テキストチャンネルのみ処理
-          const pinnedMessages = await channel.messages.fetchPinned(); // ピン留めメッセージを取得
-          if (pinnedMessages.size > 0) {
-            reportMessage += `\n**#${channel.name}**\n`; // チャンネル名を追加
-            pinnedMessages.forEach((msg) => {
-              reportMessage += `- [${msg.author.username}] ${msg.content}\n`; // 各ピン留めメッセージの内容を追加
-            });
-          }
-        }
-      }
-
-      // Discord のメッセージ制限（2000文字）を超えないようにする
-      if (reportMessage.length > 2000) {
-        reportMessage = reportMessage.slice(0, 1997) + '...';
-      }
-
-      // 指定されたすべてのチャンネルに投稿
-      for (const channelId of REPORT_CHANNEL_IDS) {
-        const reportChannel = client.channels.cache.get(channelId) as TextChannel;
-        if (reportChannel) {
-          await reportChannel.send(reportMessage); // メッセージを送信
-        }
-      }
+    // 毎日実行
+    const schedules = ['* * * * *'];
+    schedules.forEach((schedule) => {
+        cron.schedule(schedule, async () => {
+            let reportMessage = '**📌 今日のピン留めメッセージ一覧**\n'; // 送信するメッセージの初期化
+            // すべてのテキストチャンネルをチェック
+            for (const [id, channel] of client.channels.cache) {
+                if (channel instanceof discord_js_1.TextChannel) { // テキストチャンネルのみ処理
+                    const pinnedMessages = await channel.messages.fetchPinned(); // ピン留めメッセージを取得
+                    if (pinnedMessages.size > 0) {
+                        reportMessage += `\n**#${channel.name}**\n`; // チャンネル名を追加
+                        pinnedMessages.forEach((msg) => {
+                            reportMessage += `- [${msg.author.username}] ${msg.content}\n`; // 各ピン留めメッセージの内容を追加
+                        });
+                    }
+                }
+            }
+            // Discord のメッセージ制限（2000文字）を超えないようにする
+            if (reportMessage.length > 2000) {
+                reportMessage = reportMessage.slice(0, 1997) + '...';
+            }
+            // 指定されたすべてのチャンネルに投稿
+            for (const channelId of REPORT_CHANNEL_IDS) {
+                const reportChannel = client.channels.cache.get(channelId);
+                if (reportChannel) {
+                    await reportChannel.send(reportMessage); // メッセージを送信
+                }
+            }
+        });
     });
-  });
+});
 
-
+// メッセージを受け取った時の処理
 client.on("messageCreate", (message) => {
-  if (message.content === "!ping") {
-    message.reply("🏓 Pong!");
-  }
+    // Botが自分自身のメッセージに反応しないようにする
+    if (message.author.bot) return;
+
+    // "!ping" コマンドに反応
+    if (message.content === "!ping") {
+        message.reply("🏓 Pong!");
+    }
 });
 
 client.login(TOKEN); // Bot にログイン
