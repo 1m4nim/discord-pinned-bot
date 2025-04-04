@@ -94,9 +94,10 @@ client.on("messageCreate", (message) => {
     if (message.author.bot) return;
 
     // "!ping" コマンドに反応
-    if (message.content.includes === "!ping") {
+    if (message.content === "!ping") {
         message.reply("🏓 Pong!"); // 「!ping」に反応して「Pong!」を返す
     }
+    
 });
 
 // Botが切断されたときの処理
