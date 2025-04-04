@@ -34,7 +34,6 @@ client.once('ready', async () => {
                 },
             ],
         });
-
         console.log("✅ Presence を設定しました！");
     } else {
         console.log("User not found!");
@@ -55,6 +54,17 @@ client.once('ready', async () => {
             console.log("✅ Presence を 5 秒後に再設定しました！");
         }
     }, 5000); // 5秒後に再設定
+});
+
+// メッセージを受け取った時の処理
+client.on("messageCreate", (message) => {
+    // Botが自分自身のメッセージに反応しないようにする
+    if (message.author.bot) return;
+
+    // "!ping" コマンドに反応
+    if (message.content.includes("!ping")) { // 修正: includes の使い方
+        message.reply("🏓 Pong!"); // 「!ping」に反応して「Pong!」を返す
+    }
 });
 
 // 毎日実行するスケジュール
@@ -88,18 +98,6 @@ schedules.forEach((schedule) => {
     });
 });
 
-// メッセージを受け取った時の処理
-client.on("messageCreate", (message) => {
-    // Botが自分自身のメッセージに反応しないようにする
-    if (message.author.bot) return;
-
-    // "!ping" コマンドに反応
-    if (message.content.includes("!ping")) { // 修正: includes の使い方
-        message.reply("🏓 Pong!"); // 「!ping」に反応して「Pong!」を返す
-    }
-    
-});
-
 // Botが切断されたときの処理
 client.on("disconnect", () => {
     console.log("Bot が切断されました。再接続を試みます...");
@@ -107,4 +105,10 @@ client.on("disconnect", () => {
 });
 
 // Bot にログイン
-client.login(TOKEN); // Bot にログイン
+client.login(TOKEN) // Bot にログイン
+    .then(() => {
+        console.log('Bot is logged in successfully!');
+    })
+    .catch((error) => {
+        console.error('Error logging in: ', error);
+    });
