@@ -94,7 +94,7 @@ client.on("messageCreate", (message) => {
     if (message.author.bot) return;
 
     // "!ping" コマンドに反応
-    if (message.content === "!ping") {
+    if (message.content.includes === "!ping") {
         message.reply("🏓 Pong!"); // 「!ping」に反応して「Pong!」を返す
     }
 });
