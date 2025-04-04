@@ -23,10 +23,10 @@ const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(',').map(id => 
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user?.tag}!`); // Bot のログイン確認
 
-    // ステータスを設定
+    // ステータスを常にオンラインに設定
     if (client.user) {
         client.user.setPresence({
-            status: "online", // "online" = 緑（常にオンライン）
+            status: "online", // 常にオンライン状態に設定
             activities: [
                 {
                     name: "ピン留めメッセージを監視中", // Botが何をしているか
@@ -34,26 +34,10 @@ client.once('ready', async () => {
                 },
             ],
         });
-        console.log("✅ Presence を設定しました！");
+        console.log("✅ Presence をオンラインに設定しました！");
     } else {
         console.log("User not found!");
     }
-
-    // ステータスを変更する際に遅延を加えたい場合
-    setTimeout(() => {
-        if (client.user) {
-            client.user.setPresence({
-                status: "online", // "online" = 緑（常にオンライン）
-                activities: [
-                    {
-                        name: "ピン留めメッセージを監視中",
-                        type: discord_js_1.ActivityType.Watching, // 「〇〇を視聴中」
-                    },
-                ],
-            });
-            console.log("✅ Presence を 5 秒後に再設定しました！");
-        }
-    }, 5000); // 5秒後に再設定
 });
 
 // メッセージを受け取った時の処理
