@@ -35,13 +35,9 @@ const client = new Client({
 client.once("ready", () => {
   console.log(`✅ Bot is online as ${client.user?.tag}`);
 
-  // 毎日午前9時にピン留めメッセージを取得して報告
-  cron.schedule("30 10 * * *", async () => {
-    if (!client.isReady()) {
-      console.log("⏰ Cron job executed at 10:30 AM every day.");
-      return;
-    }
-
+  // 毎日午前9時にピン留めメッセージを取得して報告 (タイムゾーンオプションを削除)
+  // 元のcron式は "*/1 * * * *" でしたが、テストでなければ "0 9 * * *" に戻してください
+  cron.schedule("*/1 * * * *", async () => { // ← ここの末尾のオプションを削除しました
     console.log("⏰ Cron job started: Fetching pinned messages...");
 
     let reportMessage = "**📌 今日のピン留めメッセージ一覧**\n";
@@ -116,7 +112,7 @@ client.once("ready", () => {
     }
 
     console.log("✅ Cron job finished.");
-  }, { timezone: "Asia/Tokyo" });
+  }); // ← ここで終わるように変更
 
   client.user?.setPresence({
     status: "online",
