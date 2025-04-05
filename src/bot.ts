@@ -3,14 +3,35 @@ import * as dotenv from "dotenv";
 import * as cron from "node-cron";
 
 // .envファイルから環境変数をロード
-dotenv.config();
+dotenv.config(); // ← このすぐ下で確認
+
+// ★★★ デバッグ用に追加 ★★★
+console.log("--- Debug Start ---");
+console.log("Attempting to load DISCORD_BOT_TOKEN from .env");
+// process.envの内容を表示する際はトークンがログに出力されるため注意
+// console.log("Raw process.env.DISCORD_BOT_TOKEN:", process.env.DISCORD_BOT_TOKEN);
+// 代わりに、トークンが読み込めたかどうかの確認
+if (process.env.DISCORD_BOT_TOKEN) {
+    console.log("DISCORD_BOT_TOKEN seems loaded from .env (length check only).");
+} else {
+    console.log("DISCORD_BOT_TOKEN is UNDEFINED or empty in process.env.");
+}
+// ★★★ ここまで ★★★
 
 // .envファイルからBotのトークンを取得
 if (!process.env.DISCORD_BOT_TOKEN) {
-  console.error("❌ DISCORD_BOT_TOKEN is not set in the .env file!");
+  console.error("❌ DISCORD_BOT_TOKEN is not set in the .env file or not loaded correctly!"); // エラーメッセージを少し変更
   process.exit(1);
 }
+// トークン自体をログに出さないように注意
 const TOKEN = process.env.DISCORD_BOT_TOKEN!;
+
+// ★★★ デバッグ用に追加 ★★★
+// トークンが変数に代入されたことを確認（トークン自体はログに出さない）
+console.log("Token variable has been assigned.");
+// console.log("Token to be used for login:", TOKEN); // トークンそのものをログに出力するのは避ける
+// ★★★ ここまで ★★★
+
 
 // REPORT_CHANNEL_IDS が未設定または空の場合でも空の配列になるようにし、空文字を除去
 const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(",")
@@ -35,9 +56,9 @@ const client = new Client({
 client.once("ready", () => {
   console.log(`✅ Bot is online as ${client.user?.tag}`);
 
-  // 毎日午前9時にピン留めメッセージを取得して報告 (タイムゾーンオプションを削除)
-  // 元のcron式は "*/1 * * * *" でしたが、テストでなければ "0 9 * * *" に戻してください
-  cron.schedule("*/1 * * * *", async () => { // ← ここの末尾のオプションを削除しました
+  // 毎日午前9時にピン留めメッセージを取得して報告 (タイムゾーンオプションは削除されたまま)
+  // 元のcron式は "30 7 * * *" でしたが、テストでなければ "0 9 * * *" に戻してください
+  cron.schedule("*/1 * * * *", async () => { // ← タイムゾーンオプションは削除されたままです
     console.log("⏰ Cron job started: Fetching pinned messages...");
 
     let reportMessage = "**📌 今日のピン留めメッセージ一覧**\n";
@@ -112,7 +133,7 @@ client.once("ready", () => {
     }
 
     console.log("✅ Cron job finished.");
-  }); // ← ここで終わるように変更
+  });
 
   client.user?.setPresence({
     status: "online",
@@ -143,7 +164,11 @@ client.on("shardError", (error, shardId) => {
 });
 
 // Botのログイン
+console.log("Attempting to login..."); // ★★★ デバッグ用に追加 ★★★
+console.log("--- Debug End ---"); // ★★★ デバッグ用に追加 ★★★
 client.login(TOKEN).catch((err) => {
   console.error("❌ Bot login failed:", err);
+  // エラーオブジェクト全体を出力するとトークンが含まれる可能性があるので注意
+  // console.error(err);
   process.exit(1);
 });
