@@ -1,39 +1,22 @@
-import { Client, GatewayIntentBits, ActivityType, TextChannel, ChannelType } from "discord.js";
+import { Client, GatewayIntentBits, Message, TextChannel, NewsChannel, ChannelType } from "discord.js";
 import * as dotenv from "dotenv";
-import * as cron from "node-cron";
 
-// .envから環境変数を読み込む
 dotenv.config();
+// console.log("Bot token:", process.env.DISCORD_BOT_TOKEN);
 
-// .envから値を取得（nullチェックも込み）
-const TOKEN = process.env.DISCORD_BOT_TOKEN!;
-const CLIENT_ID = process.env.CLIENT_ID!;
-const GUILD_ID = process.env.GUILD_ID!;
-const REPORT_CHANNEL_IDS = process.env.REPORT_CHANNEL_IDS?.split(",").map(id => id.trim()).filter(id => id) || [];
-
-// Botインスタンスを作成
 const client = new Client({
   intents: [
-    GatewayIntentBits.Guilds,            // サーバーの情報を受け取る
-    GatewayIntentBits.GuildMessages,     // メッセージの受信
-    GatewayIntentBits.MessageContent     // メッセージの内容を受け取る
-  ]
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
-// Botの起動後
-client.once("ready", () => {
-  console.log(`✅ Bot is ready as ${client.user?.tag}`);
-  client.user?.setPresence({
-    status: "online",
-    activities: [{
-      name: "ピン留めメッセージを監視中",
-      type: ActivityType.Watching
-    }]
-  });
-});
+// チャンネルIDを指定
+const playgroundChannelId=(process.env.PLAYGROUND_CHANNEL_ID as string); ; // "playground" チャンネルのIDを入力してください
 
 // メッセージコマンド処理
-client.on("messageCreate", async (message) => {
+client.on("messageCreate", async (message: Message) => {
   // Botが送信したメッセージには反応しない
   if (message.author.bot) return;
 
@@ -43,38 +26,39 @@ client.on("messageCreate", async (message) => {
   }
 
   if (message.content.startsWith("!test")) {
-    const fakeMessage = {
-      author: message.author,
-      channel: message.channel,
-    } as { channel: TextChannel; author: any };
+    // チャンネルIDで"playground"チャンネルを取得
+    const playgroundChannel = message.guild?.channels.cache.get(playgroundChannelId);
 
-    await handlePinnedMessagesFromGuild(fakeMessage);
-    await message.reply("📋 ピン留めメッセージ一覧を送信しました！");
+    if (playgroundChannel && playgroundChannel instanceof TextChannel) {
+      // メッセージが送信されたチャンネルがTextChannelまたはNewsChannelか確認
+      if (message.channel instanceof TextChannel || message.channel instanceof NewsChannel) {
+        await handlePinnedMessagesFromChannel(playgroundChannel, message);
+        await message.reply("📋 Playground チャンネルのピン留めメッセージ一覧を送信しました！");
+      } else {
+        await message.reply("❌ メッセージがテキストチャンネルで送信されていません。");
+      }
+    } else {
+      await message.reply("❌ Playground チャンネルが見つかりませんでした。");
+    }
   }
 });
 
-// ピン留め取得＆送信処理
-async function handlePinnedMessagesFromGuild(messageLike: { channel: TextChannel; author: any }) {
-  const guild = messageLike.channel.guild;
-  let reportMessage = "**📌 今日のピン留めメッセージ一覧**\n";
+// ピン留め取得＆送信処理（指定されたチャンネル用）
+async function handlePinnedMessagesFromChannel(channel: TextChannel, messageLike: Message) {
+  let reportMessage = "**📌 Playground チャンネルのピン留めメッセージ一覧**\n";
   let messageCount = 0;
 
-  for (const [channelId, channel] of guild.channels.cache) {
-    if (channel instanceof TextChannel) {
-      try {
-        const pinnedMessages = await channel.messages.fetchPinned();
-        if (pinnedMessages.size > 0) {
-          messageCount += pinnedMessages.size;
-          reportMessage += `\n**#${channel.name}**\n`;
-          pinnedMessages.forEach((msg) => {
-            const contentPreview = msg.content.length > 100 ? msg.content.slice(0, 97) + "..." : msg.content;
-            reportMessage += `- [${msg.author.username}]: ${contentPreview || "(コンテンツ無し)"} ([リンク](${msg.url}))\n`;
-          });
-        }
-      } catch (err) {
-        console.error(`❌ チャンネル #${channel.name} でピン取得失敗:`, err);
-      }
+  try {
+    const pinnedMessages = await channel.messages.fetchPinned();
+    if (pinnedMessages.size > 0) {
+      messageCount += pinnedMessages.size;
+      pinnedMessages.forEach((msg) => {
+        const contentPreview = msg.content.length > 100 ? msg.content.slice(0, 97) + "..." : msg.content;
+        reportMessage += `- [${msg.author.username}]: ${contentPreview || "(コンテンツ無し)"} ([リンク](${msg.url}))\n`;
+      });
     }
+  } catch (err) {
+    console.error(`❌ チャンネル #${channel.name} でピン取得失敗:`, err);
   }
 
   if (messageCount === 0) {
@@ -97,23 +81,16 @@ async function handlePinnedMessagesFromGuild(messageLike: { channel: TextChannel
     }
   }
 
-  // REPORT_CHANNEL_IDS に送信
-  for (const channelId of REPORT_CHANNEL_IDS) {
-    try {
-      const reportChannel = await client.channels.fetch(channelId);
-      if (reportChannel instanceof TextChannel) {
-        for (const part of messageParts) {
-          await reportChannel.send(part);
-        }
-        console.log(`✅ レポート送信成功: ${channelId}`);
-      } else {
-        console.warn(`⚠️ チャンネル ${channelId} はTextChannelではありません。`);
-      }
-    } catch (err) {
-      console.error(`❌ レポート送信失敗: ${channelId}`, err);
+  // メッセージを送信
+  for (const part of messageParts) {
+    // messageLike.channel が TextChannel または NewsChannel であることを確認
+    if (messageLike.channel instanceof TextChannel || messageLike.channel instanceof NewsChannel) {
+      await messageLike.channel.send(part);
+    } else {
+      console.error("❌ メッセージ送信に失敗しました。チャンネルが送信可能なタイプではありません。");
     }
   }
 }
 
-// Botログイン
-client.login(TOKEN);
+
+client.login(process.env.DISCORD_BOT_TOKEN as string);
