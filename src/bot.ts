@@ -50,8 +50,6 @@ client.on("messageCreate", async (message: Message) => {
       await message.reply("❌ ぷりんの工作室チャンネルが見つかりませんでした。");
     }
 
-    // 両チャンネルのピン留めメッセージを送信したことを通知
-    await message.reply("📋 Playground と ぷりんの工作室のピン留めメッセージ一覧を送信しました！");
   }
 });
 
